@@ -1,0 +1,27 @@
+# Git
+.git/
+
+# Python-generated files
+__pycache__/
+*.py[oc]
+
+# Jupyter Lab 
+.ipynb_checkpoints/
+# Hide dev notebooks
+notebooks/
+
+# Virtual environments
+.env
+.venv
+
+# Data
+*.zip
+data/
+logs/
+
+# Extras
+.DS_Store
+*.pem
+*.key
+aws_credentials
+work_portfolio_data

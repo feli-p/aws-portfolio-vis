@@ -93,3 +93,22 @@ uv sync
 uv run python -m src.<nombre-submódulo>
 ```
 
+**Streamlit en Docker**
+1. Actualiza requirements.txt con `uv pip compile pyproject.toml -o requirements.txt`.
+2. Construye la imagen con `docker build -t portfolio-app .`
+3. Corre el contenedor con:
+    - Powershell:
+        ~~~powershell
+        docker run -p 8501:8501 `
+        -v ${env:USERPROFILE}\.aws:/root/.aws:ro `
+        -e AWS_PROFILE=default `
+        portfolio-app
+        ~~~
+    - Bash:
+        ```bash
+        docker run -p 8501:8501 \
+            -v ~/.aws:/root/.aws:ro \
+            -e AWS_PROFILE=default \
+            portfolio-app
+        ```
+4. Ingresa a <http://localhost:8501>

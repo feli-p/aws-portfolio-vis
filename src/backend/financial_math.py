@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
+import yfinance as yf
+from datetime import datetime
 
 from src.common.logging_utils import setup_logger
 
@@ -106,9 +108,13 @@ def generate_portfolio_report(df_athena: pd.DataFrame, risk_free_rate: float = 0
     }
 
 
-def generate_cumulative_return_chart(df_athena: pd.DataFrame) -> go.Figure:
+def generate_cumulative_return_chart(
+        df_athena: pd.DataFrame,
+        benchmark: str | None = None
+) -> go.Figure:
     """
     Consolida el historial, calcula el rendimiento acumulado en porcentaje y genera una figura de Plotly interactiva.
+    Si se especifica un benchmark descarga los datos de yfinance y hace la comparación.
     """
     fig = go.Figure()
     
@@ -122,19 +128,55 @@ def generate_cumulative_return_chart(df_athena: pd.DataFrame) -> go.Figure:
     # Calcular rendimiento acumulado en porcentaje
     df_portfolio["cumulative_return_pct"] = ((1 + df_portfolio["daily_return"]).cumprod() - 1.0) * 100
     
-    # Crear la línea de evolución
+    # Crear la gráfica de linea
     fig.add_trace(go.Scatter(
         x=df_portfolio.index,
         y=df_portfolio["cumulative_return_pct"],
         mode="lines",
-        name="Rendimiento Acumulado",
+        name="Rendimiento acumulado",
         line=dict(color="#0068c9", width=2),
         hovertemplate="Fecha: %{x}<br>Rendimiento: %{y:.2f}%<extra></extra>"
     ))
+
+    if benchmark:
+        try:
+            # Obtener las fechas límites de tus datos de Athena para sincronizar el benchmark
+            start_date = df_portfolio.index.min()
+            end_date = df_portfolio.index.max()
+            
+            # Descargar datos de Yahoo Finance
+            ticker_map = {"SPX": "^GSPC"} # Agregar si facilita streamlit
+            yf_ticker = ticker_map.get(benchmark, benchmark)
+            
+            bench_data = yf.Ticker(yf_ticker).history(
+                start=start_date.strftime('%Y-%m-%d'), 
+                end=end_date.strftime('%Y-%m-%d')
+            )
+            
+            if not bench_data.empty:
+                # Calcular rendimiento acumulado del benchmark: (Precio_actual / Precio_inicial) - 1
+                close_prices =  bench_data['Close']
+                
+                # Squeeze por si baja un MultiIndex de columnas
+                #close_prices = close_prices.squeeze()
+                
+                bench_cum_return = (close_prices / close_prices.iloc[0] - 1) * 100
+
+                bench_dates = pd.to_datetime(bench_cum_return.index).tz_localize(None)
+                
+                # Añadir la traza del benchmark al gráfico
+                fig.add_trace(go.Scatter(
+                    x=bench_dates,
+                    y=bench_cum_return.values,
+                    name=f"Benchmark ({benchmark})",
+                    line=dict(width=2, dash='dash', color='#ff7f0e')
+                ))
+        except Exception as e:
+            logger.error(f"Error descargando benchmark: {e}")
     
-    # Configurar diseño (layout) óptimo para la UI
+    # Configurar diseño
     fig.update_layout(
-        title="Evolución del Rendimiento Acumulado",
+        title="Evolución del rendimiento acumulado",
         xaxis_title="Fecha",
         yaxis_title="Rendimiento (%)",
         margin=dict(l=40, r=40, t=40, b=40),
