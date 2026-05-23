@@ -50,6 +50,37 @@ graph TB
     class ATHENA athena
 ```
 
+### Capa Bronze
+Hay dos tipos de datos originales: una tabla `transactions` y una tabla `asset_history` por cada combinación distinta de *cuenta* y *activo*.
+
+![Diagrama de tablas](imgs/estructura-datos.svg)
+
+
+### Capa Silver
+Estructura del bucket dentro de la capa Silver.
+
+**Ruta:** `data/silver`
+
+```
+├── transactions/
+│   └── account=inversiones/
+│       └── transactions.parquet
+│   └── account=retiro/
+│       └── transactions.parquet
+│
+└── asset_history/
+    ├── account=inversiones/
+    │   ├── asset=spy/
+    │   │   └── year=2025/
+    │   │       └── history.parquet
+    │   └── asset=qqq/
+    │       └── year=2025/
+    │           └── history.parquet
+    └── account=retiro/
+        └── asset=spy/
+            └── year=2025/
+                └── history.parquet
+```
 
 ## Cómo ejecutar el código para hacer pruebas locales
 **Sincronizar uv**
