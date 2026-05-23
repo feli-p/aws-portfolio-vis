@@ -1,0 +1,19 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+
+
+# Jupyter Lab 
+.ipynb_checkpoints/
+# Hide dev notebooks
+notebooks/
+
+
+# Virtual environments
+.venv
+
+
+# Data
+*.zip
+data/
+logs/
