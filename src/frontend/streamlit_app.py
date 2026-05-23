@@ -15,6 +15,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from src.backend.aws_athena import load_portfolio_metadata, query_asset_history
 from src.backend.financial_math import generate_portfolio_report, generate_cumulative_return_chart
 from src.common.logging_utils import setup_logger
+from src.backend.bedrock_chat import ask_bedrock, format_portfolio_context
 
 logger = setup_logger(__name__)
 
@@ -147,22 +148,52 @@ if df_return_graph is not None:
         )
         
     st.markdown("---")
-    
-    st.subheader("Evolución del rendimiento acumulado (%)")
-    
-    # Checkbox de Benchmark arriba del gráfico
-    comparar_benchmark = st.checkbox(
-        "📊 Comparar con Benchmark (S&P 500)", 
-        value=False,
-        help="Compara contra el rendimiento acumulado del S&P 500 (^GSPC) vía yfinance."
+
+    st.divider()
+
+    tab1, tab2 = st.tabs(
+        [
+            "Rendimiento acumulado",
+            "Chatbot",
+        ]
     )
-    benchmark_ticker = "SPX" if comparar_benchmark else None
     
-    # Renderizar Gráfico de Plotly
-    with st.spinner("Descargando datos del Benchmark..." if benchmark_ticker else "Generando gráfico..."):
-        fig_cumulative = generate_cumulative_return_chart(df_return_graph, benchmark=benchmark_ticker)
+    with tab1:
+        st.subheader("Evolución del rendimiento acumulado (%)")
         
-    st.plotly_chart(fig_cumulative, use_container_width=True)
+        # Checkbox de Benchmark arriba del gráfico
+        comparar_benchmark = st.checkbox(
+            "Comparar con Benchmark (S&P 500)", 
+            value=False,
+            help="Compara contra el rendimiento acumulado del S&P 500 (^GSPC) vía yfinance."
+        )
+        benchmark_ticker = "SPX" if comparar_benchmark else None
+        
+        # Renderizar Gráfico de Plotly
+        with st.spinner("Descargando datos del Benchmark..." if benchmark_ticker else "Generando gráfico..."):
+            fig_cumulative = generate_cumulative_return_chart(df_return_graph, benchmark=benchmark_ticker)
+            
+        st.plotly_chart(fig_cumulative, use_container_width=True)
+    with tab2:
+        st.subheader("Chatbot sobre los datos")
+
+        question = st.text_input(
+            "Pregunta sobre el portafolio",
+            placeholder="Ejemplo: ¿qué columna concentra mayor valor o cómo se comporta el rendimiento?",
+        )
+
+        context = format_portfolio_context(st.session_state["last_report"], st.session_state["last_df_athena"])
+
+        if st.button("Preguntar"):
+            if not question.strip():
+                st.warning("Escribe una pregunta.")
+            else:
+                with st.spinner("Consultando Bedrock..."):
+                    answer = ask_bedrock(question, context)
+                st.markdown(answer)
+
+        with st.expander("Contexto enviado al chatbot"):
+            st.text(context)
 
 else:
     # Mensaje inicial si la sesión está totalmente limpia
