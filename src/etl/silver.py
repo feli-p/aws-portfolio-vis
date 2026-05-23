@@ -15,7 +15,7 @@ AWS_REGION = "us-east-1"
 BUCKET_NAME = "aws-portfolio-vis"
 S3_PREFIX = "data/silver"
 S3_BASE_PATH = f"s3://{BUCKET_NAME}/{S3_PREFIX}"
-GLUE_DB_NAME = "portfolio_silver_db"
+GLUE_DB_NAME = "silver_portfolio_db"
 
 # To-Do: Agregar data-typespara las tablas.
 
