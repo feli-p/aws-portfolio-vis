@@ -67,6 +67,8 @@ Resources:
                   - athena:GetQueryExecution
                   - athena:GetQueryResults
                   - athena:StopQueryExecution
+                  - athena:GetWorkGroup
+                  - glue:CreateTable
                   - glue:GetDatabase
                   - glue:GetDatabases
                   - glue:GetTable
