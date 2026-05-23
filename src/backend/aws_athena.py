@@ -34,8 +34,8 @@ def load_portfolio_metadata() -> tuple[list[str], list[str]]:
 def query_asset_history(
     start_date: str,
     end_date: str,
-    accounts: list[str] | None,
-    assets: list[str] | None
+    accounts: list[str] = None,
+    assets: list[str] = None
 ) -> pd.DataFrame:
     """
     Consulta el historial aplicando filtros de fechas, cuentas y activos.
